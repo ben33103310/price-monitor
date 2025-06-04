@@ -83,4 +83,5 @@ def main():
             print("無法取得價格")
 
 if __name__ == "__main__":
+    keep_alive()
     main()
