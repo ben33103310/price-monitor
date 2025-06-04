@@ -43,7 +43,7 @@ async def send_telegram_notification(price):
     try:
         bot = Bot(token=TELEGRAM_TOKEN)
         message = f"""🚨 價格警報！\n目前價格：${price:,}\n已低於目標價格 ${TARGET_PRICE:,}\n商品連結：{PRODUCT_URL}"""
-        await bot.send_message(chat_id=CHAT_ID, text=message)
+        bot.send_message(chat_id=CHAT_ID, text=message)
         print("✅ 已發送 Telegram 通知")
     except Exception as e:
         print(f"❌ 發送通知錯誤: {e}")
