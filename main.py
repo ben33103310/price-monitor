@@ -75,7 +75,7 @@ def main():
         if price is not None:
             print(f"目前價格：${price:,}")
             if price <= target_price:
-                asyncio.run(send_telegram_notification(url, price, target_price))
+                send_telegram_notification(url, price, target_price)
             else:
                 print("目前價格尚未低於目標")
         else:
