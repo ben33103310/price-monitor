@@ -50,14 +50,14 @@ def get_product_price(product_url):
         print(f"❌ 取得價格錯誤: {e}")
         return None
 
-async def send_telegram_notification(product_url, price, target_price):
+def send_telegram_notification(product_url, price, target_price):
     try:
         bot = Bot(token=TELEGRAM_TOKEN)
         message = f"""🚨 價格警報！
 目前價格：${price:,}
 已低於目標價格 ${target_price:,}
 商品連結：{product_url}"""
-        await bot.send_message(chat_id=CHAT_ID, text=message)
+        bot.send_message(chat_id=CHAT_ID, text=message)
         print("✅ 已發送 Telegram 通知")
     except Exception as e:
         print(f"❌ 發送通知錯誤: {e}")
