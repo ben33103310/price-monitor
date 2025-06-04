@@ -6,7 +6,7 @@ import os
 from telegram import Bot
 
 PRODUCT_URL = "https://24h.pchome.com.tw/prod/DMAH02-A900AN6MB"
-TARGET_PRICE = 1300
+TARGET_PRICE = 1400
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
