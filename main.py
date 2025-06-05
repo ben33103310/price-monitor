@@ -267,7 +267,7 @@ async def check_prices_task():
                 else:
                     print("無法取得價格")
 
-            await asyncio.sleep(1800)  # 30 分鐘
+            await asyncio.sleep(900)  # 30 分鐘
         except Exception as e:
             print(f"❌ 定期檢查錯誤: {e}")
             await asyncio.sleep(300)  # 出錯時 5 分鐘後重試
