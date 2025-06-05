@@ -18,7 +18,6 @@ def get_main_menu_keyboard():
     keyboard = [
         [InlineKeyboardButton("📋 查看追蹤清單", callback_data='list_products')],
         [InlineKeyboardButton("➕ 新增追蹤商品", callback_data='add_product_start')],
-        [InlineKeyboardButton("🔔 手動降價通知", callback_data='manual_check_notify_only')], # 修改名稱更清晰
         [InlineKeyboardButton("📊 手動價格總覽", callback_data='check_all_prices')], # 修改名稱更清晰
     ]
     return InlineKeyboardMarkup(keyboard)
