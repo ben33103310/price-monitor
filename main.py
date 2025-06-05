@@ -84,8 +84,7 @@ async def main():
         print("🔌 機器人已停止。")
 
 if __name__ == "__main__":
-    nest_asyncio.apply() # 允許在某些環境中巢狀執行 asyncio 事件迴圈
-More actions
+    nest_asyncio.apply() # 允許在某些環境中巢狀執行 asyncio 事件迴圈More actions
     if KEEP_ALIVE_ENABLED:
         keep_alive() # 啟動 keep_alive (例如在 Replit 上)
 
