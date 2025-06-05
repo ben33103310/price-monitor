@@ -98,15 +98,10 @@ async def send_telegram_notification(product_url, price, target_price):
 # Telegram 指令處理
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        ["/list", "/add", "/delete"],
-        ["/update", "/check", "/help"]
-    ]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    
     message = """🛒 價格監控機器人
 
 可用指令：
+/manual - 手動檢查並通知低於目標價格的商品
 /list - 查看追蹤商品清單
 /add [網址] [目標價格] - 新增追蹤商品
 /delete [編號] - 刪除追蹤商品
@@ -135,6 +130,24 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message += f"{i}. {display_url}\n   目標價格：${target_price:,}\n\n"
 
     await update.message.reply_text(message)
+
+async def manual_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("🔔 開始手動價格通知檢查...")
+
+    products = read_products_from_file()
+    if not products:
+        await update.message.reply_text("📝 目前沒有追蹤任何商品")
+        return
+
+    found_any = False
+    for url, target_price in products:
+        price = get_product_price(url)
+        if price is not None and price <= target_price:
+            await send_telegram_notification(url, price, target_price)
+            found_any = True
+
+    if not found_any:
+        await update.message.reply_text("📈 目前沒有低於目標價格的商品")
 
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -282,6 +295,7 @@ async def main_async():
 
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("manual", manual_command))
     application.add_handler(CommandHandler("list", list_command))
     application.add_handler(CommandHandler("add", add_command))
     application.add_handler(CommandHandler("delete", delete_command))
