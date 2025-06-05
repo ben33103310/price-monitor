@@ -17,14 +17,6 @@ from bot_callback_handlers import main_button_callback_router
 from bot_message_handlers import handle_text_message
 from price_checker import check_prices_task
 
-# keep_alive
-try:
-    from keep_alive import keep_alive
-    KEEP_ALIVE_ENABLED = True
-except ImportError:
-    KEEP_ALIVE_ENABLED = False
-    def keep_alive(): pass
-
 async def main():
     if not TELEGRAM_TOKEN:
         print("❌ TELEGRAM_TOKEN 未設定")
@@ -45,9 +37,7 @@ async def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
     print("🤖 Bot 啟動中...")
-    if KEEP_ALIVE_ENABLED:
-        print("🌐 Keep_alive 功能已啟用")
-
+    
     # 背景任務：包 try，避免 silent fail
     async def safe_background():
         try:
@@ -75,7 +65,6 @@ async def main():
         print("🔌 機器人已停止。")
 
 if __name__ == "__main__":
-    keep_alive()
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
