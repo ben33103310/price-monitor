@@ -13,7 +13,7 @@
   - 其他網站（以 HTML 推測價格）
 - 🧠 Telegram Bot 操作介面，支援文字指令操作
 - 🔔 價格低於目標自動通知
-- 🔄 每 30 分鐘自動檢查所有商品
+- 🔄 每 15 分鐘自動檢查所有商品
 - 📦 使用簡單的 `product.txt` 儲存追蹤清單
 - 🌐 支援部署於 [Render](https://render.com) 或 [Replit](https://replit.com)
 
