@@ -54,7 +54,6 @@ async def main():
     application.add_handler(CommandHandler("delete", delete_command))
     application.add_handler(CommandHandler("update", update_command))
     # 更新指令名稱以匹配 callback handler 的功能描述
-    application.add_handler(CommandHandler("manual", manual_check_notify_only_command)) # 原 manual_command
     application.add_handler(CommandHandler("check", check_all_prices_command))       # 原 check_command
 
     # 註冊按鈕回調處理器
