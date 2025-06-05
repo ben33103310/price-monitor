@@ -84,21 +84,17 @@ async def main():
         print("🔌 機器人已停止。")
 
 if __name__ == "__main__":
-    nest_asyncio.apply() # 允許在某些環境中巢狀執行 asyncio 事件迴圈
-    
-    if KEEP_ALIVE_ENABLED:
-        keep_alive() # 啟動 keep_alive (例如在 Replit 上)
-    
+    keep_alive()
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop = asyncio.get_event_loop()
 
-    loop.create_task(main())  # 注意：這裡是 create_task，不是 run_until_complete
-    loop.run_forever()
-    
+    try:
+        loop.create_task(main())
+        loop.run_forever()
     except KeyboardInterrupt:
         print("\n🛑 使用者手動中斷程式。")
     except Exception as e:
