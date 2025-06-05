@@ -45,30 +45,43 @@ def get_product_price(product_url):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
         }
-        response = requests.get(product_url, headers=headers)
+        response = requests.get(product_url, headers=headers, timeout=10)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        price_elements = soup.find_all(['span', 'div'], class_=re.compile(r'price|amount'))
+        # PChome
+        if "pchome.com.tw" in product_url:
+            match = re.search(r'"Price":\s?(\d+)', response.text)
+            if match:
+                return int(match.group(1))
+
+        # momo
+        elif "momoshop.com.tw" in product_url:
+            match = re.search(r'\"sellPrice\":\s*\"?(\d+)', response.text)
+            if match:
+                return int(match.group(1))
+
+        # Shopee
+        elif "shopee.tw" in product_url:
+            match = re.search(r'\"price\":\s*(\d+)', response.text)
+            if match:
+                return int(match.group(1)) // 100000  # Shopee 價格是乘上 100000 的
+
+        # fallback：找常見價格字樣
+        price_elements = soup.find_all(['span', 'div'], class_=re.compile(r'price|amount|sale|current', re.I))
         for element in price_elements:
             text = element.get_text(strip=True)
-            price_match = re.search(r'[\d,]+', text.replace(',', ''))
-            if price_match and len(price_match.group()) >= 2:
-                price = int(price_match.group().replace(',', ''))
+            price_match = re.search(r'\d[\d,]*', text)
+            if price_match:
+                price = int(price_match.group().replace(",", ""))
                 if price > 100:
                     return price
 
-        price_text = soup.find(text=re.compile(r'[\$\$元][\d,]+|[\d,]+[\$元]'))
-        if price_text:
-            price_match = re.search(r'[\d,]+', price_text.replace(',', ''))
-            if price_match:
-                return int(price_match.group().replace(',', ''))
-
         return None
     except Exception as e:
-        print(f"❌ 取得價格錯誤: {e}")
+        print(f"❌ 無法取得價格: {e}")
         return None
-
+        
 # 發送 Telegram 通知
 async def send_telegram_notification(product_url, price, target_price):
     try:
