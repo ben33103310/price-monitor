@@ -20,7 +20,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🤖 **主要功能按鈕** (建議使用)：
 * `📋 查看追蹤清單`: 列出所有追蹤的商品，並提供單獨管理按鈕。
 * `➕ 新增追蹤商品`: 引導您新增想要追蹤的商品網址和目標價格。
-* `🔔 手動降價通知`: 立即檢查所有商品，僅對價格低於目標的商品發送通知。
 * `📊 手動價格總覽`: 立即檢查所有商品，並回報所有商品的目前價格與狀態。
 
 ⌨️ **文字指令** (可作為備用)：
@@ -34,7 +33,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 * `/update [編號] [新目標價格]` - 修改指定商品的目標價格。
     * 範例: `/update 1 1400`
 * `/check` - (同「手動價格總覽」按鈕) 手動檢查所有商品價格並顯示總覽。
-* `/manual` - (同「手動降價通知」按鈕) 手動檢查並僅通知低於目標價格的商品。
 
 💡 **提示**:
 * 新增商品時，請確保提供完整的商品網址。
@@ -187,32 +185,6 @@ async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("❌ 更新失敗！無法寫入商品資料檔案。", reply_markup=get_main_menu_keyboard())
     else:
         await update.message.reply_text(f"❌ 編號錯誤！找不到編號為 {item_number} 的商品。有效編號範圍為 1 到 {len(products)}。", reply_markup=get_main_menu_keyboard())
-
-
-async def manual_check_notify_only_command(update: Update, context: ContextTypes.DEFAULT_TYPE): # 原 manual_command
-    await update.message.reply_text("🔔 開始手動降價通知檢查 (指令模式)...")
-    products = read_products_from_file()
-    if not products:
-        await update.message.reply_text("📝 目前沒有追蹤任何商品。", reply_markup=get_main_menu_keyboard())
-        return
-
-    found_any_to_notify = False
-    chat_id_to_notify = str(update.message.chat_id) # 指令模式下用當前聊天室ID
-    
-    processing_message = await update.message.reply_text("正在處理中，請稍候...")
-    
-    for i, (url, target_price) in enumerate(products):
-        await processing_message.edit_text(f"正在檢查商品 {i+1}/{len(products)}...\n{url[:50]}...")
-        price = get_product_price(url)
-        if price is not None and price <= target_price:
-            await send_telegram_notification(context.bot, chat_id_to_notify, url, price, target_price)
-            found_any_to_notify = True
-        await asyncio.sleep(1) # 避免請求過快
-
-    if found_any_to_notify:
-        await processing_message.edit_text("✅ 手動降價通知檢查完成，已發送相關通知。", reply_markup=get_main_menu_keyboard())
-    else:
-        await processing_message.edit_text("📈 本次檢查未發現價格低於目標的商品。", reply_markup=get_main_menu_keyboard())
 
 async def check_all_prices_command(update: Update, context: ContextTypes.DEFAULT_TYPE): # 原 check_command
     await update.message.reply_text("📊 開始手動價格總覽檢查 (指令模式)...")
