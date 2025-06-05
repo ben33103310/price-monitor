@@ -5,7 +5,7 @@ from telegram.ext import (
     CallbackQueryHandler,
     MessageHandler,
     filters,
-    ContextTypes # 雖然這裡沒有直接用到 ContextTypes，但保留是好的習慣
+    ContextTypes
 )
 from telegram import Update
 from config import TELEGRAM_TOKEN
@@ -37,30 +37,20 @@ async def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
     print("🤖 Bot 啟動中...")
-    
-    # 背景任務：包 try，避免 silent fail
+
+    # 背景任務
     async def safe_background():
         try:
-            # 將 application 傳遞給背景任務，以便它需要時可以和 bot 互動
             await check_prices_task(application)
         except Exception as e:
             print(f"❌ 背景任務錯誤: {e}")
 
-    # 創建背景任務，但不要等待它完成
     asyncio.create_task(safe_background())
 
-    # 主輪詢
     try:
-        # 關鍵點：設置 close_loop=False
-        # 這會告訴 run_polling 方法不要在停止時嘗試關閉事件迴圈
-        # 而是讓 asyncio.run() 或運行環境來管理迴圈的關閉
         await application.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=False)
     except Exception as e:
         print(f"❌ 機器人運行時錯誤: {e}")
-        # 在這裡通常不需要再手動呼叫 application.shutdown()，因為
-        # run_polling 已經設計成能自行處理關閉或由外部信號觸發關閉。
-        # 如果錯誤發生，可能事件迴圈已經處於無法正確關閉的狀態，
-        # 再呼叫 shutdown 可能會導致 "Cannot close a running event loop" 錯誤。
     finally:
         print("🔌 機器人已停止。")
 
