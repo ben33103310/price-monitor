@@ -179,7 +179,7 @@ async def check_prices_task(application: Application):
 
             # 調整檢查週期間隔，例如15分鐘到1小時
             # 900秒 = 15 分鐘, 1800秒 = 30分鐘, 3600秒 = 1小時
-            check_interval = 1800 # 預設30分鐘
+            check_interval = 900 # 預設15分鐘
             print(f"週期任務：下次檢查將在 {check_interval // 60} 分鐘後進行。")
             await asyncio.sleep(check_interval)
         except Exception as e:
