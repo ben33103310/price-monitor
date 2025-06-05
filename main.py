@@ -196,6 +196,36 @@ async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = "📊 價格檢查結果：\n\n" + "\n\n".join(results)
     await update.message.reply_text(message)
 
+async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        if len(context.args) != 2:
+            await update.message.reply_text("❌ 格式錯誤\n正確格式：/update [編號] [新目標價格]")
+            return
+
+        index = int(context.args[0]) - 1
+        new_price = int(context.args[1])
+
+        products = read_products_from_file()
+        if not products:
+            await update.message.reply_text("📝 目前沒有追蹤任何商品")
+            return
+
+        if index < 0 or index >= len(products):
+            await update.message.reply_text(f"❌ 編號錯誤，請輸入 1 到 {len(products)} 之間的數字")
+            return
+
+        url, _ = products[index]
+        products[index] = (url, new_price)
+
+        if write_products_to_file(products):
+            await update.message.reply_text(f"✅ 已更新商品目標價格\n商品編號：{index+1}\n新目標價格：${new_price:,}")
+        else:
+            await update.message.reply_text("❌ 更新失敗，請稍後再試")
+    except ValueError:
+        await update.message.reply_text("❌ 編號和價格必須是數字")
+    except Exception as e:
+        await update.message.reply_text(f"❌ 更新失敗：{str(e)}")
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("請使用指令來操作機器人。輸入 /help 查看可用指令。")
 
@@ -234,6 +264,7 @@ async def main_async():
     application.add_handler(CommandHandler("add", add_command))
     application.add_handler(CommandHandler("delete", delete_command))
     application.add_handler(CommandHandler("check", check_command))
+    application.add_handler(CommandHandler("update", update_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("🤖 Telegram 機器人已啟動")
