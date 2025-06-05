@@ -206,8 +206,6 @@ async def main_button_callback_router(update: Update, context: ContextTypes.DEFA
         await list_products_callback(update, context, page=page)
     elif data == 'add_product_start':
         await add_product_start_callback(update, context)
-    elif data == 'manual_check_notify_only': # Renamed
-        await manual_check_notify_only_callback(update, context)
     elif data == 'check_all_prices': # Renamed
         await check_all_prices_callback(update, context)
     elif data == 'delete_product':
