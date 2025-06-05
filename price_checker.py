@@ -25,9 +25,11 @@ def get_product_price(product_url: str):
 
         # PChome
         if "pchome.com.tw" in product_url:
-            match = re.search(r'"Price":\s?(\d+)', response.text)
+            match = re.search(r'"price":\s?(\d+)', response.text, re.IGNORECASE)
             if match:
                 return int(match.group(1))
+            else:
+                print("⚠️ 未在 HTML 中找到 'price' 欄位，可能頁面格式已更動")
 
         # momo
         elif "momoshop.com.tw" in product_url:
