@@ -7,6 +7,7 @@ from telegram import Bot, Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from keep_alive import keep_alive
 import nest_asyncio
+from telegram import ReplyKeyboardMarkup
 
 # 讀取環境變數
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -84,6 +85,12 @@ async def send_telegram_notification(product_url, price, target_price):
 # Telegram 指令處理
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        ["/list", "/add", "/delete"],
+        ["/update", "/check", "/help"]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    
     message = """🛒 價格監控機器人
 
 可用指令：
