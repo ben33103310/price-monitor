@@ -5,3 +5,4 @@ flask
 schedule
 gunicorn
 nest_asyncio
+python-dotenv
