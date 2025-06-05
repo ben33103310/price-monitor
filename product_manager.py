@@ -16,7 +16,7 @@ def read_products_from_file(filepath=PRODUCT_FILE):
                             price = int(price_str)
                             products.append((url, price))
                         except ValueError:
-                            print(f⚠️ 警告：無法解析價格 '{price_str}' 於檔案 '{filepath}' 的行: '{line}'")
+                            print(f"⚠️ 警告：無法解析價格 '{price_str}' 於檔案 '{filepath}' 的行: '{line}'")
                     elif len(parts) == 1:
                          print(f"⚠️ 警告：檔案 '{filepath}' 的行 '{line}' 缺少價格資訊，已忽略。")
                     # else: 忽略空行或格式不正確的行
