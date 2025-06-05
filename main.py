@@ -51,17 +51,23 @@ async def main():
     try:
         await application.initialize()
         await application.start()
-        await application.run_polling(allowed_updates=Update.ALL_TYPES)
+        await application.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=False)
     except Exception as e:
         print(f"❌ 機器人運行時錯誤: {e}")
     finally:
-        print("🔌 機器人已停止。")
-        await application.stop()
+        try:
+            await application.stop()
+            print("🔌 機器人已停止。")
+        except Exception as e:
+            print(f"❌ 停止時錯誤: {e}")
 
-if __name__ == "__main__":
+def run_bot():
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         print("🛑 手動中斷")
     except Exception as e:
         print(f"❌ 啟動時錯誤: {e}")
+
+if __name__ == "__main__":
+    run_bot()
