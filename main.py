@@ -90,12 +90,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /list - 查看追蹤商品清單
 /add [網址] [目標價格] - 新增追蹤商品
 /delete [編號] - 刪除追蹤商品
+/update [編號] [新目標價格] - 修改目標價格
 /check - 手動檢查所有商品價格
 /help - 顯示幫助訊息
 
 範例：
 /add https://24h.pchome.com.tw/prod/xxxxxxxxxxx 1400
-/delete 1"""
+/delete 1
+/update 2 1500"""
     await update.message.reply_text(message)
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
