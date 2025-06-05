@@ -17,7 +17,7 @@ from config import TELEGRAM_TOKEN
 # 匯入處理函式
 from bot_command_handlers import (
     start_command, help_command, list_command, add_command,
-    delete_command, update_command, manual_check_notify_only_command, check_all_prices_command
+    delete_command, update_command, check_all_prices_command
 )
 from bot_callback_handlers import main_button_callback_router
 from bot_message_handlers import handle_text_message
