@@ -21,6 +21,7 @@ from bot_command_handlers import (
 )
 from bot_callback_handlers import main_button_callback_router
 from bot_message_handlers import handle_text_message
+from telegram import Update
 
 # 匯入背景任務
 from price_checker import check_prices_task
