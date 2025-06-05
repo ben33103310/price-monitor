@@ -25,7 +25,7 @@ def get_product_price(product_url: str):
 
         # PChome
         if "pchome.com.tw" in product_url:
-            match = re.search(r'"price":\s?(\d+)', response.text, re.IGNORECASE)
+            match = re.search(r'"price"\s*:\s*"(\d+)"', response.text)
             if match:
                 return int(match.group(1))
             else:
