@@ -17,7 +17,7 @@ from bot_callback_handlers import main_button_callback_router
 from bot_message_handlers import handle_text_message
 from price_checker import check_prices_task
 
-def main():
+async def main():
     if not TELEGRAM_TOKEN:
         print("❌ TELEGRAM_TOKEN 未設定")
         return
@@ -49,15 +49,18 @@ def main():
     application.create_task(safe_background())
 
     try:
-        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        await application.initialize()
+        await application.start()
+        await application.run_polling(allowed_updates=Update.ALL_TYPES)
     except Exception as e:
         print(f"❌ 機器人運行時錯誤: {e}")
     finally:
         print("🔌 機器人已停止。")
+        await application.stop()
 
 if __name__ == "__main__":
     try:
-        main()
+        asyncio.run(main())
     except KeyboardInterrupt:
         print("🛑 手動中斷")
     except Exception as e:
