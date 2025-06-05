@@ -80,6 +80,7 @@ async def main():
         await application.run_polling(allowed_updates=Update.ALL_TYPES)
     except Exception as e:
         print(f"❌ 機器人運行時發生錯誤: {e}")
+        await application.shutdown() 
     finally:
         print("🔌 機器人已停止。")
 
