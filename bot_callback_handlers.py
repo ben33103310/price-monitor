@@ -67,37 +67,6 @@ async def list_products_callback(update: Update, context: ContextTypes.DEFAULT_T
         await update.effective_message.reply_text(text=message_text, reply_markup=reply_markup, parse_mode='Markdown', disable_web_page_preview=True)
 
 
-async def manual_check_notify_only_callback(update: Update, context: ContextTypes.DEFAULT_TYPE): # 原 manual_check_callback
-    query = update.callback_query
-    await query.answer(text="🔔 開始手動降價通知檢查...", show_alert=False)
-    await query.edit_message_text(text="🔔 處理中：正在手動檢查商品價格以尋找降價商品...", reply_markup=None) # 移除按鈕
-
-    products = read_products_from_file()
-    if not products:
-        await query.message.reply_text("📝 目前沒有追蹤任何商品。", reply_markup=get_main_menu_keyboard())
-        return
-
-    found_any_to_notify = False
-    chat_id_to_notify = str(query.message.chat_id)
-
-    for i, (url, target_price) in enumerate(products):
-        # Optional: Send progress update to user for long lists
-        if i % 5 == 0 and i > 0 : # 每5個商品更新一次狀態
-             await query.message.reply_text(f"檢查進度：{i}/{len(products)}...")
-        
-        price = get_product_price(url)
-        if price is not None and price <= target_price:
-            await send_telegram_notification(context.bot, chat_id_to_notify, url, price, target_price)
-            found_any_to_notify = True
-        await asyncio.sleep(1) # 避免請求過快
-
-    final_message_text = "✅ 手動降價通知檢查完成。"
-    if not found_any_to_notify:
-        final_message_text += "\n📈 本次檢查未發現價格低於目標的商品。"
-    
-    await query.message.reply_text(final_message_text, reply_markup=get_main_menu_keyboard())
-
-
 async def check_all_prices_callback(update: Update, context: ContextTypes.DEFAULT_TYPE): # 原 check_all_callback
     query = update.callback_query
     await query.answer(text="📊 開始手動價格總覽...", show_alert=False)
