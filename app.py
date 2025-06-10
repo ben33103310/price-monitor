@@ -1,27 +1,21 @@
-
-# app.py
 import os
 import logging
 import requests
 from flask import Flask, request
 
-from telegram import Bot, Update
-from telegram.ext import Dispatcher, MessageHandler, filters
+from telegram import Update, Bot
+from telegram.ext import Application, MessageHandler, ContextTypes, filters
 
-# --- Telegram Bot 設定 ---
-TOKEN = os.environ.get("TELEGRAM_TOKEN")  # 請在 Render 上設為環境變數
-bot = Bot(token=TOKEN)
+# --- 設定 ---
+TOKEN = os.environ.get("TELEGRAM_TOKEN")  # 在 Render 上設為環境變數
 
-# --- Flask 設定 ---
+# --- Flask 初始化 ---
 app = Flask(__name__)
 
-# --- Telegram Dispatcher ---
-dispatcher = Dispatcher(bot=bot, update_queue=None)
+# --- 機器人應用初始化 ---
+application = Application.builder().token(TOKEN).build()
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# --- 功能：抓取價格 ---
+# --- 價格擷取函式 ---
 def extract_price_from_url(url: str) -> str:
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
@@ -29,7 +23,6 @@ def extract_price_from_url(url: str) -> str:
         res.raise_for_status()
         html = res.text
 
-        # PChome
         if "pchome.com.tw" in url:
             import re
             match = re.search(r'\"Price\":(\d+)', html)
@@ -39,33 +32,34 @@ def extract_price_from_url(url: str) -> str:
         return "❓ 尚未支援這個網站或抓不到價格"
 
     except Exception as e:
-        logger.error(f"抓取價格失敗: {e}")
+        logging.error(f"抓取價格失敗: {e}")
         return "⚠️ 價格抓取失敗，請確認網址是否正確"
 
-# --- 回覆處理器 ---
-def handle_message(update: Update, context):
+# --- 處理訊息 ---
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
     if text.startswith("http"):
         price_info = extract_price_from_url(text)
-        update.message.reply_text(price_info)
+        await update.message.reply_text(price_info)
     else:
-        update.message.reply_text("請貼上商品網址，我會幫你查詢價格 🛒")
+        await update.message.reply_text("請貼上商品網址，我會幫你查詢價格 🛒")
 
-# 註冊 Handler
-dispatcher.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# --- Webhook 入口 ---
+# --- Webhook 接收端點 ---
 @app.route("/hook", methods=["POST"])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    dispatcher.process_update(update)
+    update = Update.de_json(request.get_json(force=True), application.bot)
+    application.update_queue.put_nowait(update)
     return "ok"
 
-# --- 根目錄測試 ---
+# --- Render 根目錄健康檢查 ---
 @app.route("/")
 def home():
     return "🤖 Telegram 價格查詢機器人運行中！"
 
-# --- 啟動 Flask App ---
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    import threading
+    threading.Thread(target=application.run_polling, daemon=True).start()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
