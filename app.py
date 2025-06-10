@@ -1,16 +1,29 @@
 import os
-from telegram import Update
-from telegram.ext import Application, MessageHandler, filters, ContextTypes
+from flask import Flask, request
+from telegram import Update, Bot
+from telegram.ext import Dispatcher, MessageHandler, Filters
 
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
+app = Flask(__name__)
+bot = Bot(token=TOKEN)
+dispatcher = Dispatcher(bot, None, workers=0)
 
-application = Application.builder().token(TOKEN).build()
-
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def echo(update, context):
     text = update.message.text
-    await update.message.reply_text(text)
+    update.message.reply_text(text)
 
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
 
-if __name__ == "__main__":
-    application.run_polling()
+@app.route('/')
+def index():
+    return "🤖 Telegram Bot is running."
+
+@app.route('/hook', methods=['POST'])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), bot)
+    dispatcher.process_update(update)
+    return "ok"
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
