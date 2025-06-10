@@ -20,7 +20,7 @@ def extract_price_from_url(url: str) -> str:
         html = res.text
 
         if "pchome.com.tw" in url:
-            match = re.search(r'"Price":(\d+)', html)
+            match = re.search(r'"price":(\d+)', html)
             if match:
                 return f"💰 PChome 價格：{match.group(1)} 元"
             else:
