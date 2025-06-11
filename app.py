@@ -35,6 +35,7 @@ def query_hf_api(prompt: str) -> str:
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
+    print("handle_message 被觸發，收到訊息:", update.message.text)
     reply = query_hf_api(user_text)
     await update.message.reply_text(reply)
 
@@ -44,6 +45,7 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_m
 def webhook():
     update = Update.de_json(request.get_json(force=True), application.bot)
     application.update_queue.put_nowait(update)
+    print("收到 webhook 資料：", update)  # 幫你看 webhook 原始資料
     return "ok"
 
 @app.route("/")
