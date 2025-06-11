@@ -3,6 +3,7 @@ import requests
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes
+import asyncio
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 HF_API_TOKEN = os.environ.get("HF_API_TOKEN")
@@ -45,7 +46,7 @@ def webhook():
         json_data = request.get_json(force=True)
         update = Update.de_json(json_data, application.bot)
         print("收到 webhook 資料：", json_data, flush=True)
-        application.create_task(application.process_update(update))
+        asyncio.run(application.process_update(update))
         print("已將 update 交給 application 處理", flush=True)
     except Exception as e:
         print("webhook 發生例外:", e, flush=True)
@@ -56,5 +57,5 @@ def home():
     return "🤖 Telegram Bot with Hugging Face API is running."
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # Render 預設 10000，但會以 $PORT 為主
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
