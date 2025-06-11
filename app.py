@@ -43,8 +43,8 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_m
 
 @app.route("/hook", methods=["POST"])
 def webhook():
-    print("收到 webhook 資料：", update)  # 幫你看 webhook 原始資料
     update = Update.de_json(request.get_json(force=True), application.bot)
+    print("收到 webhook 資料：", update)  # 幫你看 webhook 原始資料
     application.update_queue.put_nowait(update)
     return "ok"
 
