@@ -1,58 +1,57 @@
 import os
-import re
 import requests
 from flask import Flask, request
 from telegram import Update, Bot
-from telegram.ext import Dispatcher, MessageHandler, Filters
+from telegram.ext import Application, MessageHandler, filters, ContextTypes
 
-# --- 設定 ---
-TOKEN = os.environ.get("TELEGRAM_TOKEN")
+# 環境變數
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+HF_API_TOKEN = os.environ.get("HF_API_TOKEN")
+
 app = Flask(__name__)
-bot = Bot(token=TOKEN)
-dispatcher = Dispatcher(bot, None, workers=0)
+application = Application.builder().token(TELEGRAM_TOKEN).build()
 
-# --- 價格擷取函式（目前支援 PChome） ---
-def extract_price_from_url(url: str) -> str:
-    try:
-        headers = {"User-Agent": "Mozilla/5.0"}
-        res = requests.get(url, headers=headers, timeout=5)
-        res.raise_for_status()
-        html = res.text
+HF_API_URL = "https://api-inference.huggingface.co/models/gpt2"  # 這邊可換別的聊天模型
 
-        if "pchome.com.tw" in url:
-            match = re.search(r'"price"\s*:\s*"(\d+)"', html)
-            if match:
-                return f"💰 PChome 價格：{match.group(1)} 元"
+def query_hf_api(prompt: str) -> str:
+    headers = {
+        "Authorization": f"Bearer {HF_API_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    payload = {"inputs": prompt}
+    response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=10)
+    if response.status_code == 200:
+        try:
+            data = response.json()
+            # gpt2 是文本生成，回傳格式可能是 list，取生成文字即可
+            if isinstance(data, list) and len(data) > 0 and "generated_text" in data[0]:
+                return data[0]["generated_text"]
             else:
-                return "⚠️ 找不到價格，可能不是商品頁"
-
-        return "❓ 暫時只支援 PChome 網址"
-    except Exception as e:
-        return f"⚠️ 無法抓取價格：{e}"
-
-# --- 處理訊息 ---
-def handle_message(update, context):
-    text = update.message.text.strip()
-    if text.startswith("http"):
-        reply = extract_price_from_url(text)
+                return "🤖 無法取得回應，請稍後再試"
+        except Exception:
+            return "🤖 回應解析失敗"
     else:
-        reply = "請貼上商品網址，我會幫你查詢價格 🛒"
-    update.message.reply_text(reply)
+        return f"🤖 API 呼叫失敗，狀態碼：{response.status_code}"
 
-dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
+    reply = query_hf_api(user_text)
+    await update.message.reply_text(reply)
 
-# --- Flask 路由 ---
-@app.route('/')
-def index():
-    return "🤖 Telegram 價格查詢機器人運行中！"
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-@app.route('/hook', methods=['POST'])
+@app.route("/hook", methods=["POST"])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    dispatcher.process_update(update)
+    update = Update.de_json(request.get_json(force=True), application.bot)
+    application.update_queue.put_nowait(update)
     return "ok"
 
-# --- 主程式 ---
-if __name__ == '__main__':
+@app.route("/")
+def home():
+    return "🤖 Telegram Bot with Hugging Face API is running."
+
+if __name__ == "__main__":
+    import threading
+    threading.Thread(target=application.run_polling, daemon=True).start()
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host="0.0.0.0", port=port)
