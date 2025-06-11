@@ -35,7 +35,7 @@ def query_hf_api(prompt: str) -> str:
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
-    print("handle_message 被觸發，收到訊息:", update.message.text)
+    print("handle_message 被觸發，收到訊息:", update.message.text, flush=True)
     reply = query_hf_api(user_text)
     await update.message.reply_text(reply)
 
