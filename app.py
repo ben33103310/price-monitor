@@ -40,13 +40,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+# --- 這裡建立全域 event loop 並初始化 application ---
+loop = asyncio.get_event_loop()
+loop.run_until_complete(application.initialize())
+
 @app.route("/hook", methods=["POST"])
 def webhook():
     try:
         json_data = request.get_json(force=True)
         update = Update.de_json(json_data, application.bot)
         print("收到 webhook 資料：", json_data, flush=True)
-        asyncio.run(application.process_update(update))
+        # 用同一個 loop 執行 process_update
+        loop.create_task(application.process_update(update))
         print("已將 update 交給 application 處理", flush=True)
     except Exception as e:
         print("webhook 發生例外:", e, flush=True)
