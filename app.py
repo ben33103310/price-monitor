@@ -3,12 +3,12 @@ import requests
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes
-import asyncio
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 HF_API_TOKEN = os.environ.get("HF_API_TOKEN")
 
 app = Flask(__name__)
+
 application = Application.builder().token(TELEGRAM_TOKEN).build()
 
 HF_API_URL = "https://api-inference.huggingface.co/models/gpt2"
@@ -34,24 +34,26 @@ def query_hf_api(prompt: str) -> str:
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
-    print("handle_message 被觸發，收到訊息:", update.message.text, flush=True)
+    print("handle_message 被觸發，收到訊息:", user_text, flush=True)
     reply = query_hf_api(user_text)
     await update.message.reply_text(reply)
 
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# --- 這裡建立全域 event loop 並初始化 application ---
-loop = asyncio.get_event_loop()
-loop.run_until_complete(application.initialize())
+import asyncio
 
 @app.route("/hook", methods=["POST"])
 def webhook():
     try:
         json_data = request.get_json(force=True)
-        update = Update.de_json(json_data, application.bot)
         print("收到 webhook 資料：", json_data, flush=True)
-        # 用同一個 loop 執行 process_update
-        loop.create_task(application.process_update(update))
+        update = Update.de_json(json_data, application.bot)
+        # 初始化 Application（只在第一次）
+        if not getattr(application, "_is_initialized", False):
+            asyncio.run(application.initialize())
+            application._is_initialized = True
+        # 執行 update 處理
+        asyncio.run(application.process_update(update))
         print("已將 update 交給 application 處理", flush=True)
     except Exception as e:
         print("webhook 發生例外:", e, flush=True)
