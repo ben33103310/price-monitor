@@ -1,0 +1,21 @@
+services:
+  # A web service
+  - type: web
+    name: gemini-telegram-bot # 你可以自訂服務名稱
+    env: python
+    region: singapore # 可選，選擇離你近的地區，如 oregon (美國) 或 frankfurt (德國)
+    plan: free # 使用免費方案
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn bot:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.4 # 指定 Python 版本
+      - key: BOT_TOKEN
+        sync: false # 設為 false，我們將在 Render 後台手動設定
+      - key: GEMINI_API_KEY
+        sync: false # 設為 false，我們將在 Render 後台手動設定
+      - key: WEBHOOK_URL
+        fromService:
+          type: web
+          name: gemini-telegram-bot # 必須和上面的 name 一致
+          property: url
